@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.convidados.viewmodel.GuestFormViewModel
 import com.example.convidados.R
+import com.example.convidados.service.constants.GuestConstants
 import kotlinx.android.synthetic.main.activity_guest_form.*
 import java.lang.Exception
 
@@ -15,6 +16,7 @@ class GuestFormActivity : AppCompatActivity(), View.OnClickListener {
 
     //My ViewModel LATEINIT
     private lateinit var mGuestFormViewModel: GuestFormViewModel
+    private var mGuestID: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,8 +25,21 @@ class GuestFormActivity : AppCompatActivity(), View.OnClickListener {
         //My ViewModel Initialization
         mGuestFormViewModel = ViewModelProvider(this).get(GuestFormViewModel::class.java)
 
-        setListeners()
         observer()
+        setListeners()
+        loadData()
+
+        // Default value
+        rad_btn_present.isChecked = true
+    }
+
+    // Called if the Activity has been Intented by OnClick (element) in the GuestListFragment
+    private fun loadData() {
+        val receivedBundle = intent.extras
+        if (receivedBundle != null) {
+            mGuestID = receivedBundle.getInt(GuestConstants.GUESTID)
+            mGuestFormViewModel.load(mGuestID)
+        }
     }
 
     override fun onClick(v: View) {
@@ -32,8 +47,9 @@ class GuestFormActivity : AppCompatActivity(), View.OnClickListener {
             val name = edit_text_name.text.toString()
             val presence = rad_btn_present.isChecked
 
-            mGuestFormViewModel.save(name, presence)
-            /*mGuestFormViewModel.save(edit_text_name.text.toString(), rad_btn_present.isChecked)*/
+            // ??? RESPONSABILITY
+            /*if (mGuestID == 0) mGuestFormViewModel.save(name, presence) else mGuestFormViewModel.update(name, presence)*/
+            mGuestFormViewModel.save(mGuestID, name, presence)
         }
     }
 
@@ -45,6 +61,17 @@ class GuestFormActivity : AppCompatActivity(), View.OnClickListener {
                 Toast.makeText(applicationContext, "Falha!", Toast.LENGTH_SHORT).show()
             }
             finish()
+        })
+
+        mGuestFormViewModel.newGuest.observe(this, Observer {
+
+            if (it == null) {
+                Toast.makeText(this, "Falha no carregamento", Toast.LENGTH_SHORT)
+            } else {
+                edit_text_name.setText(it.name)
+                if (it.presence) rad_btn_present.isChecked = true else rad_btn_absent.isChecked =
+                    true
+            }
         })
     }
 
