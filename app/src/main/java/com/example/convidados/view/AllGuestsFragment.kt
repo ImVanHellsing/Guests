@@ -56,7 +56,13 @@ class AllGuestsFragment : Fragment() {
 
                 startActivity(intent)
             }
+
+            override fun onDelete(id: Int) {
+                mAllGuestsViewModel.delete(id)
+                mAllGuestsViewModel.load(GuestConstants.FILTER.ALL)
+            }
         }
+
         mAdapter.attachListener(mListener)
 
         observer()
@@ -64,11 +70,13 @@ class AllGuestsFragment : Fragment() {
         return root
     }
 
+    // Reload the list when the fragment comeback to be in evidence NOT ONLY on create
     override fun onResume() {
         super.onResume()
-        mAllGuestsViewModel.load()
+        mAllGuestsViewModel.load(GuestConstants.FILTER.ALL)
     }
 
+    // SETUP the Observers of the activity
     private fun observer() {
         mAllGuestsViewModel.guestList.observe(viewLifecycleOwner, Observer {
             mAdapter.updateGuests(it)
